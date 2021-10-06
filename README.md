@@ -1,0 +1,1 @@
+Development of an AI using genetic code algorithm to solve the eight queens problem, where the objective is to populate a chess board with the maximum possible number of queens without possible attacks between them.

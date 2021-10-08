@@ -1,9 +1,10 @@
 enablePrints = 0
 from ctypes import sizeof
 import random
+import matplotlib.pyplot as plt
 
 def main():
-    run_ga(5000, 30, 30, 0.01, True)
+    run_ga(200, 20, 5, 0.1, True)
 
 def evaluate(individual):
     """
@@ -61,6 +62,7 @@ def tournament(participants):
     for individual in participants:
         conflitos = evaluate(individual)
         if conflitos < conflitosMelhor:
+            conflitosMelhor = conflitos
             indexMelhor = indexAtual
         indexAtual = indexAtual + 1
 
@@ -135,6 +137,11 @@ def generateParent():
     return parent
 
 def top(participants, n, k):
+    """
+    participants = list,
+    n = int numero de torneios,
+    k = int numero de participantes em cada torneio,
+    """
     selectParticipants = participants[:]
     participantes = []
     melhores = []
@@ -155,6 +162,30 @@ def top(participants, n, k):
 
     return melhores
 
+def getMax(generation):
+    maisConflitos = 0
+    for individuo in generation:
+        conflitos = evaluate(individuo)
+        if conflitos > maisConflitos:
+            maisConflitos = conflitos
+    return maisConflitos
+
+def getMin(generation):
+    menosConflitos = 30
+    for individuo in generation:
+        conflitos = evaluate(individuo)
+        if conflitos < menosConflitos:
+            menosConflitos = conflitos
+    return menosConflitos
+
+def getMed(generation):
+    total = 0
+    for individuo in generation:
+        conflitos = evaluate(individuo)
+        total = total + conflitos
+    media = total/len(generation)
+    return media  
+
 def run_ga(g, n, k, m, e):
     """
     Executa o algoritmo genético e retorna o indivíduo com o menor número de ataques entre rainhas
@@ -166,12 +197,16 @@ def run_ga(g, n, k, m, e):
     :return:list - melhor individuo encontrado
     """
     p = []
-    
+    fig, ax = plt.subplots()
     #gera a lista de pais baseada no numero n de indivíduos
     i = 0
     while i < n:
         p.append(generateParent())
         i = i + 1
+    maximos = []
+    minimos = []
+    medias = []
+    geracoes = []
 
     geracaoAtual = 0
     while geracaoAtual < g:
@@ -188,14 +223,25 @@ def run_ga(g, n, k, m, e):
             mutate(pFilhosTemp[0],m)
             mutate(pFilhosTemp[1],m)
             pFilhos.extend(pFilhosTemp)
-
         p = pFilhos[:]
+
+        maximos.append(getMax(p))
+        minimos.append(getMin(p))
+        medias.append(getMed(p))
+        geracoes.append(geracaoAtual)
         geracaoAtual = geracaoAtual + 1
 
-    melhorDosMelhores = tournament(p)
-
-    print(melhorDosMelhores, "Ataques: ", evaluate(melhorDosMelhores))
+    ax.plot(geracoes, maximos)
+    ax.plot(geracoes,minimos)
+    ax.plot(geracoes,medias)
+    ax.set(xlabel='Geração', ylabel='Conflitos', title='Oito Rainhas')
     
+    print(getMin(p))
+    melhorDosMelhores = tournament(p)
+    print(melhorDosMelhores, "Ataques: ", evaluate(melhorDosMelhores))
 
+    fig.savefig("last_result.png")
+    plt.show()
+    
 if __name__ == "__main__":
     main()
